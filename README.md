@@ -2,7 +2,7 @@
 
 ## Abstract
 
-This exercise is a common problem in e­commerce and brick­and­mortar retail systems.
+This exercise is a common problem in e­commerce and brick-and-mortar retail systems.
 
 A customer shops from some form of catalog, selecting items and quantities they wish to purchase. When they are ready, they “check out”, that is, complete their purchase, at which point they are given a total amount of money they owe for the purchase of a specific set of items.
 
