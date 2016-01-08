@@ -23,6 +23,28 @@ Apart from requiring Oracle's Java SE Development Kit 8 (JDK 8), this project is
   - Installer packages for OS X.
   - Installer packages for Windows.
 
+### Testing
+
+From an SBT shell, the unit test suite is run with:
+
+```
+test
+```
+
+Specific tests with:
+
+```
+test-only boldradius.catalog.ItemSpec
+```
+
+Test code coverage reports may be generated with:
+
+```
+;coverage;clean;test;coverageReport
+```
+
+(Visit `target/scala-2.11/scoverage-report/index.html` in your browser to see results.)
+
 ## Resources
 
 ### [Squants](http://squants.com)
