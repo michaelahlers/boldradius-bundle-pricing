@@ -21,4 +21,5 @@ libraryDependencies ++=
 
 /** Test dependencies. */
 libraryDependencies ++=
-  Nil
+  "org.scalatest" %% "scalatest" % "2.2.4" % "test" ::
+    Nil
