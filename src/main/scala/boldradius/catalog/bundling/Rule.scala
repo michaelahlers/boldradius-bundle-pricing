@@ -14,7 +14,7 @@ import play.api.libs.json._
  * Rule(SKUs = List("A", "A"), cost = USD(2.15))
  * }}}
  *
- * A loaf of bread ”B” for \$5.00, a stick of margarine ”M” for \$2.00, or loaf of bread “A” with two sticks of margarine ”M” all together for \$7.00.
+ * A loaf of bread “B” for \$5.00, a stick of margarine “M” for \$2.00, or loaf of bread “A” with two sticks of margarine “M” all together for \$7.00.
  *
  * {{{
  * Rule(SKUs = List("B", cost = USD(5.00))
