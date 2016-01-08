@@ -16,6 +16,7 @@ scalacOptions in Test ++=
 libraryDependencies ++=
   "ch.qos.logback" % "logback-classic" % "1.1.3" ::
     "com.squants" %% "squants" % "0.5.3" ::
+    "com.typesafe.play" %% "play-json" % "2.4.6" ::
     "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0" ::
     Nil
 
