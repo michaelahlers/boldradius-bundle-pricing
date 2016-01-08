@@ -9,3 +9,16 @@ A customer shops from some form of catalog, selecting items and quantities they 
 In the bounds of this problem, certain groups of items can be taken together as a “bundle” with a different price. For example, if I buy a single apple in isolation it costs $1.99, if I buy two apples it’s $2.15. More complex combinations are possible. For example, a loaf of bread “A” purchased with two sticks of margarine “B” and the second stick of margarine is free.
 
 The same item may appear in more than one bundle (_i.e._, any one “cart” of items might be able to be combined in more than one way).
+
+## Development
+
+### Setup
+
+Apart from requiring Oracle's Java SE Development Kit 8 (JDK 8), this project is “batteries included.” Simply start [Typesafe Activator](http://typesafe.com/activator) from the project's root to get started (installing [SBT](http://scala-sbt.org/0.13/tutorial/Setup.html) is optional). It's recommended to use one of the following resources to obtain Java.
+
+- [Web Upd8 PPA](http://webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html)
+  - Best packages for Debian-based distributions (_e.g._, Debian, Ubuntu, Mint)
+- [Oracle Java SE Development Kit 8 Downloads](http://oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+  - Packages for RPM-based distributions (_e.g._, RHEL, Fedora, CentOS).
+  - Installer packages for OS X.
+  - Installer packages for Windows.
