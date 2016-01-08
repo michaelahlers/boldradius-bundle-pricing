@@ -4,9 +4,9 @@ version := "0.0.0"
 
 scalaVersion := "2.11.7"
 
-scalacOptions in ThisBuild ++=
-  "-target:jvm-1.8" ::
-    "-feature" ::
+scalacOptions ++=
+  "-feature" ::
+    "-target:jvm-1.8" ::
     Nil
 
 scalacOptions in Test ++=
@@ -22,6 +22,12 @@ libraryDependencies ++=
 /** Test dependencies. */
 libraryDependencies ++=
   "org.scalatest" %% "scalatest" % "2.2.4" % "test" ::
+    Nil
+
+scalacOptions in(Compile, doc) ++=
+  "-author" ::
+    "-groups" ::
+    "-implicits" ::
     Nil
 
 /** See http://scala-sbt.org/0.13/docs/Howto-Scaladoc.html for details. */
