@@ -22,3 +22,9 @@ Apart from requiring Oracle's Java SE Development Kit 8 (JDK 8), this project is
   - Packages for RPM-based distributions (_e.g._, RHEL, Fedora, CentOS).
   - Installer packages for OS X.
   - Installer packages for Windows.
+
+## Resources
+
+### [Squants](http://squants.com)
+
+This project deals with costs, and the Squants framework—which deals with quantities and units of measure—provides an outstanding, full-featured API for money.
