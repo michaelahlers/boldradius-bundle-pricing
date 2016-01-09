@@ -51,6 +51,10 @@ Test code coverage reports may be generated with:
 
 JSON representations of local models are convenient for both API consumers and developers. Typesafe's library—from the Play Framework—is a convenient and powerful tool for these purposes.
 
+### [Metrics](http://metrics.dropwizard.io)
+
+Used occasionally, mostly for testing purposes.
+
 ### [Squants](http://squants.com)
 
 This project deals with costs, and the Squants framework—which deals with quantities and units of measure—provides an outstanding, full-featured API for money.
