@@ -6,6 +6,54 @@ import scala.collection.mutable.Builder
 import scala.language.{higherKinds, postfixOps}
 import scalaz.syntax.std.map._
 
+/**
+ * Masked operations wrapper. Provides functions that, given a pattern matched completely, masks elements from a [[scala.collection.Traversable traversable]]. Evaluation stops when the mask is satisfied or no more elements are left to evaluate. Given a lazy [[scala.collection.generic.CanBuildFrom collection builder]] (such as is used for [[scala.collection.immutable.Stream.StreamBuilder streams]]), this operation will be cheap—even for many elements. Understand the implications of whatever generic builder may apply, considering the size of the evaluated traversable.
+ *
+ * The following examples best illustrate usage and behavior:
+ *
+ * {{{
+import boldradius.scala.collection._
+
+val mask = Map('A' -> 3, 'B' -> 2, 'C' -> 1)
+
+// Pattern matches some of the list.
+assert(List('A', 'A', 'A', 'A', 'B', 'B', 'B', 'C', 'C').masked(mask) == MaskedSome(List('A', 'B', 'C'), List('A', 'A', 'A', 'B', 'B', 'C')))
+
+// Pattern matches the entire list.
+assert(List('A', 'A', 'A', 'B', 'B', 'C').masked(mask) == MaskedAll(List('A', 'A', 'A', 'B', 'B', 'C')))
+
+// Pattern doesn't match entirely.
+assert(List('A', 'A', 'A', 'B', 'B', 'X', 'Y', 'Z').masked(mask) == MaskedNone(List('A', 'A', 'A', 'B', 'B', 'X', 'Y', 'Z')))
+
+// Masked an empty list.
+assert(List.empty[Char].masked(mask) == MaskedEmpty)
+
+// Masked an empty list with empty mask.
+assert(List.empty[Char].masked(Map.empty) == MaskedEmpty)
+ * }}}
+ *
+ * An identity function may be supplied to control matching behavior:
+ *
+ * {{{
+import boldradius.catalog.Item
+import boldradius.scala.collection._
+
+val mask = Map("bread" -> 2, "margarine" -> 2)
+
+val apple = Item(SKU = "apple")
+
+val bread0 = Item(SKU = "bread")
+val bread1 = Item(SKU = "bread")
+
+val margarine0 = Item(SKU = "margarine")
+val margarine1 = Item(SKU = "margarine")
+
+assert(
+  List(apple, bread0, bread1, margarine0, margarine1).masked(mask, _.SKU) ==
+    MaskedSome(List(apple), List(bread0, bread1, margarine0, margarine1))
+)
+ * }}}
+ */
 class TraversableMaskedOps[A, C[A] <: Traversable[A]](c: C[A])(implicit cbf: CanBuildFrom[C[A], A, C[A]]) {
 
   def masked[Id](pattern: Map[Id, Int], id: A => Id): Masked[C[A]] = {
