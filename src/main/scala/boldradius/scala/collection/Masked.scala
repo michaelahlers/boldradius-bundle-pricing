@@ -5,10 +5,7 @@ import scala.language.higherKinds
 /**
  * Represents the outcome of [[TraversableMaskedOps masking]] a [[scala.collection.Traversable]] using a given pattern.
  *
- * - Any pattern (empty or not) matched against an empty [[scala.collection.Traversable stream]] is [[MaskedEmpty]].
- * - Nothing masked in a [[scala.collection.Traversable stream]] is [[MaskedNone]].
- * - Partial elements masked in a [[scala.collection.Traversable stream]] is [[MaskedSome]].
- * - All elements masked in a [[scala.collection.Traversable stream]] is [[MaskedAll]].
+ * Any pattern (empty or not) matched against an empty [[scala.collection.Traversable stream]] is [[MaskedEmpty]]. Nothing masked in a [[scala.collection.Traversable stream]] is [[MaskedNone]]. Partial elements masked in a [[scala.collection.Traversable stream]] is [[MaskedSome]]. All elements masked in a [[scala.collection.Traversable stream]] is [[MaskedAll]].
  */
 sealed trait Masked[+C]
 
