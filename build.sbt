@@ -18,6 +18,7 @@ libraryDependencies ++=
     "com.squants" %% "squants" % "0.5.3" ::
     "com.typesafe.play" %% "play-json" % "2.4.6" ::
     "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0" ::
+    "io.dropwizard.metrics" % "metrics-core" % "3.1.2" ::
     Nil
 
 /** Test dependencies. */
