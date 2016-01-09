@@ -1,6 +1,5 @@
-package boldradius.collection
+package boldradius.scala.collection
 
-import boldradius.scala.collection.withCountBy
 import com.typesafe.scalalogging.LazyLogging
 import org.scalatest.{Matchers, WordSpec}
 
