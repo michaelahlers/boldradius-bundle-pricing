@@ -1,8 +1,10 @@
 package boldradius.catalog.bundling
 
+import boldradius.squants.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
+import squants.Money
 
 /**
  * Represents a single rule of a bundling.
@@ -26,22 +28,22 @@ import play.api.libs.json._
  */
 case class Rule(
   id: RuleId = RuleId.next,
-  SKUs: List[String] = Nil //,
-  //cost: Money
+  SKUs: List[String] = Nil,
+  cost: Money
 )
 
 object Rule {
 
   implicit def reads: Reads[Rule] = (
     (__ \ 'id).read[Long].map(RuleId(_)) and
-      (__ \ 'SKUs).read[List[String]] //and
-    //(__ \ 'cost).read[Money]
+      (__ \ 'SKUs).read[List[String]] and
+      (__ \ 'cost).read[Money]
     ) (Rule.apply _)
 
   implicit def writes: OWrites[Rule] = (
     (__ \ 'id).write[Long].contramap[RuleId](_.value) and
-      (__ \ 'SKUs).write[List[String]] //and
-    //(__ \ 'cost).read[Write]
+      (__ \ 'SKUs).write[List[String]] and
+      (__ \ 'cost).write[Money]
     ) (unlift(Rule.unapply))
 
 }
