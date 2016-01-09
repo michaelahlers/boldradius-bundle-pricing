@@ -3,16 +3,16 @@ package boldradius.scala.collection
 import scala.language.higherKinds
 
 /**
- * Additional operations wrapper.
+ * Count by operations wrapper.
  *
  * {{{
- * import boldradius.scala.collection.withCountBy
- *
- * val chars = List('a', 'b', 'c', 'A', 'B', 'C', 'a', 'b', 'c')
- * val counts = chars.counted
- *
- * assert(chars.counted == Map('a' -> 2, 'b' -> 2, 'c' -> 2, 'A' -> 1, 'B' -> 1, 'C' -> 1))
- * assert(chars.countBy(_.toLower) == Map('a' -> 3, 'b' -> 3, 'c' -> 3))
+import boldradius.scala.collection.withCountBy
+
+val chars = List('a', 'b', 'c', 'A', 'B', 'C', 'a', 'b', 'c')
+val counts = chars.counted
+
+assert(chars.counted == Map('a' -> 2, 'b' -> 2, 'c' -> 2, 'A' -> 1, 'B' -> 1, 'C' -> 1))
+assert(chars.countBy(_.toLower) == Map('a' -> 3, 'b' -> 3, 'c' -> 3))
  * }}}
  *
  * @see [[withCountBy]]

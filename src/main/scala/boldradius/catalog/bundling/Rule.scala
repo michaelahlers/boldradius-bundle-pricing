@@ -12,16 +12,16 @@ import squants.Money
  * One apple “A” for \$1.99, or two apples “A” for \$2.15.
  *
  * {{{
- * Rule(SKUs = List("A", cost = USD(1.99))
- * Rule(SKUs = List("A", "A"), cost = USD(2.15))
+Rule(SKUs = List("A", cost = USD(1.99))
+Rule(SKUs = List("A", "A"), cost = USD(2.15))
  * }}}
  *
  * A loaf of bread “B” for \$5.00, a stick of margarine “M” for \$2.00, or loaf of bread “A” with two sticks of margarine “M” all together for \$7.00.
  *
  * {{{
- * Rule(SKUs = List("B", cost = USD(5.00))
- * Rule(SKUs = List("M"), cost = USD(2.00))
- * Rule(SKUs = List("B", "M", "M"), cost = USD(7.00))
+Rule(SKUs = List("B", cost = USD(5.00))
+Rule(SKUs = List("M"), cost = USD(2.00))
+Rule(SKUs = List("B", "M", "M"), cost = USD(7.00))
  * }}}
  *
  * @param SKUs See [[boldradius.catalog.Item.SKU]].

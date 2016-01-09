@@ -6,16 +6,16 @@ import play.api.libs.json.{Format, JsError, JsResult, JsValue}
  * Makes writing [[play.api.libs.json.Format]] implementations more concise.
  *
  * {{{
- * new PartialFormat[BigDecimal] {
- *   override def partialReads = {
- *     case JsNumber(v) => JsSuccess(v)
- *     case _ => JsError(ValidationError("error.expected.jsstring"))
- *   }
- *
- *   override def partialWrites = {
- *     case v => JsNumber(v)
- *   }
- * }
+new PartialFormat[BigDecimal] {
+  override def partialReads = {
+    case JsNumber(v) => JsSuccess(v)
+    case _ => JsError(ValidationError("error.expected.jsstring"))
+  }
+
+  override def partialWrites = {
+    case v => JsNumber(v)
+  }
+}
  * }}}
  *
  * @tparam T See [[play.api.libs.json.Format]].
