@@ -1,6 +1,6 @@
 package boldradius.scala.collection
 
-class MapAdjustByOps[K, V](index: Map[K, V]) {
+class MapAdjustedOps[K, V](index: Map[K, V]) {
 
   /**
    * Apply a computation to the value at the given `key` and return an updated [[scala.collection.Map]].
@@ -10,7 +10,7 @@ class MapAdjustByOps[K, V](index: Map[K, V]) {
    * @param filter Applied immediately to the result of `f`, and—if true—the new value is included, otherwise the original value is removed without a replacement.
    * @param alternative A default value to use if nothing matches `key`.
    */
-  def adjustBy(key: K, f: V => V, filter: V => Boolean = _ => true, alternative: Option[V] = None): Map[K, V] = {
+  def adjusted(key: K, f: V => V, filter: V => Boolean = _ => true, alternative: Option[V] = None): Map[K, V] = {
     val base: V =
       index
         .get(key)
