@@ -55,6 +55,10 @@ JSON representations of local models are convenient for both API consumers and d
 
 Used occasionally, mostly for testing purposes.
 
+### [Scalaz](https://github.com/scalaz/scalaz)
+
+Although its functional programming features are little-used by this project, it offers a few convenient enhancements to Scala's core library.
+
 ### [Squants](http://squants.com)
 
 This project deals with costs, and the Squants framework—which deals with quantities and units of measure—provides an outstanding, full-featured API for money.
