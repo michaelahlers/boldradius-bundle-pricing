@@ -15,10 +15,12 @@ scalacOptions in Test ++=
 /** Compile and runtime dependencies. */
 libraryDependencies ++=
   "ch.qos.logback" % "logback-classic" % "1.1.3" ::
+    "com.chuusai" %% "shapeless" % "2.2.5" ::
     "com.squants" %% "squants" % "0.5.3" ::
     "com.typesafe.play" %% "play-json" % "2.4.6" ::
     "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0" ::
     "io.dropwizard.metrics" % "metrics-core" % "3.1.2" ::
+    // "org.julienrf" %% "play-json-variants" % "2.0" ::
     "org.scalaz" %% "scalaz-core" % "7.2.0" ::
     Nil
 
