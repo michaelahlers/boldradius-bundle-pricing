@@ -38,6 +38,9 @@ object Rule {
   def apply(items: List[Item], cost: Money): Rule =
     Rule(SKUs = items.map(_.SKU), cost = cost)
 
+  def apply(item: Item, cost: Money): Rule =
+    Rule(SKUs = item.SKU :: Nil, cost = cost)
+
   implicit def reads: Reads[Rule] = (
     (__ \ 'id).read[Long].map(RuleId(_)) and
       (__ \ 'SKUs).read[List[String]] and
