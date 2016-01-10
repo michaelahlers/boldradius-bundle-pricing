@@ -93,4 +93,44 @@ trait PricerSpec
 
   }
 
+  info("It's possible for a less expensive bundle price to inadvertently cause a higher price by excluding other more expensive bundles that may result in a lower net price.")
+
+  "Three apples and a loaf of bread" when {
+
+    val items = List(Apple, Apple, Apple, Bread)
+
+    "priced independently" must {
+      val rules = List(A, A, A, B)
+      val expected = USD(8.97)
+      s"cost $expected" in {
+        pricer(rules, items).futureValue should be(expected)
+      }
+    }
+
+    "priced with two apples and an apple and bread discounts" must {
+      val rules = List(AA, AB)
+      val expected = USD(3.90)
+      s"cost $expected" in {
+        pricer(rules, items).futureValue should be(expected)
+      }
+    }
+
+    "priced with a three apple discount" must {
+      val rules = List(AAA, B)
+      val expected = USD(5.00)
+      s"cost $expected" in {
+        pricer(rules, items).futureValue should be(expected)
+      }
+    }
+
+    "priced with all overlapping group discounts" must {
+      val rules = List(A, B, AA, AB, AAA)
+      val expected = USD(3.90)
+      s"cost $expected" in {
+        pricer(rules, items).futureValue should be(expected)
+      }
+    }
+
+  }
+
 }
