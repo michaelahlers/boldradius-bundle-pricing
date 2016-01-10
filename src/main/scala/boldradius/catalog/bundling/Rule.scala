@@ -1,5 +1,6 @@
 package boldradius.catalog.bundling
 
+import boldradius.catalog.Item
 import boldradius.squants.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
@@ -34,11 +35,14 @@ case class Rule(
 
 object Rule {
 
+  def apply(items: List[Item], cost: Money): Rule =
+    Rule(SKUs = items.map(_.SKU), cost = cost)
+
   implicit def reads: Reads[Rule] = (
     (__ \ 'id).read[Long].map(RuleId(_)) and
       (__ \ 'SKUs).read[List[String]] and
       (__ \ 'cost).read[Money]
-    ) (Rule.apply _)
+    ) ({ (id, SKUs, cost) => Rule.apply(id, SKUs, cost) })
 
   implicit def writes: OWrites[Rule] = (
     (__ \ 'id).write[Long].contramap[RuleId](_.value) and
