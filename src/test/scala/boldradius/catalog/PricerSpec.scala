@@ -14,36 +14,35 @@ trait PricerSpec
 
   def pricer: Pricer
 
-  object items {
+  object Apple extends Item(SKU = "APPLE")
 
-    val apple = Item(SKU = "APPLE")
+  object Bread extends Item(SKU = "BREAD")
 
-    val bread = Item(SKU = "BREAD")
+  object Celery extends Item(SKU = "CELERY")
 
-    val celery = Item(SKU = "CELERY")
+  object Margarine extends Item(SKU = "MARGARINE")
 
-    val margarine = Item(SKU = "MARGARINE")
+  val A = Rule(USD(1.99), Apple)
+  val B = Rule(USD(3.00), Bread)
+  val M = Rule(USD(2.50), Margarine)
 
-  }
+  val AA = Rule(USD(2.15), Apple, Apple)
+
+  val BMM = Rule(B.cost + M.cost, Bread, Margarine, Margarine)
 
   "Apples sold with a group discount" when {
-
-    import items.apple
-
-    val A = Rule(USD(1.99), apple)
-    val AA = Rule(USD(2.15), apple, apple)
 
     val rules = List(A, AA)
 
     "an apple is bought=" must {
       s"cost ${A.cost}" in {
-        pricer(rules, apple).futureValue should be(A.cost)
+        pricer(rules, Apple).futureValue should be(A.cost)
       }
     }
 
     "two apples are bought" must {
       s"cost ${AA.cost}" in {
-        pricer(rules, apple, apple).futureValue should be(AA.cost)
+        pricer(rules, Apple, Apple).futureValue should be(AA.cost)
       }
     }
 
@@ -51,41 +50,35 @@ trait PricerSpec
 
   "Bread and margarine sold with a group discount" when {
 
-    import items.{bread, margarine}
-
-    val B = Rule(USD(3.00), bread)
-    val M = Rule(USD(2.50), margarine)
-    val BMM = Rule(B.cost + M.cost, bread, margarine, margarine)
-
     val rules = List(B, M, BMM)
 
     "a loaf is bought alone" must {
       s"cost ${B.cost}" in {
-        pricer(rules, bread).futureValue should be(B.cost)
+        pricer(rules, Bread).futureValue should be(B.cost)
       }
     }
 
     "a stick of margarine is bought alone" must {
       s"cost ${M.cost}" in {
-        pricer(rules, margarine).futureValue should be(M.cost)
+        pricer(rules, Margarine).futureValue should be(M.cost)
       }
     }
 
     "a loaf of bread and stick of margarine bought together" must {
       s"cost ${B.cost + M.cost}" in {
-        pricer(rules, bread, margarine).futureValue should be(B.cost + M.cost)
+        pricer(rules, Bread, Margarine).futureValue should be(B.cost + M.cost)
       }
     }
 
     "a loaf of bread and two sticks of margarine bought together" must {
       s"cost ${BMM.cost}" in {
-        pricer(rules, bread, margarine, margarine).futureValue should be(BMM.cost)
+        pricer(rules, Bread, Margarine, Margarine).futureValue should be(BMM.cost)
       }
     }
 
     "two loafs of bread and three sticks of margarine bought together" must {
       s"cost ${B.cost + BMM.cost + M.cost}" in {
-        pricer(rules, bread, bread, margarine, margarine, margarine).futureValue should be(B.cost + BMM.cost + M.cost)
+        pricer(rules, Bread, Bread, Margarine, Margarine, Margarine).futureValue should be(B.cost + BMM.cost + M.cost)
       }
     }
 
