@@ -29,28 +29,28 @@ Rule(SKUs = List("B", "M", "M"), cost = USD(7.00))
  */
 case class Rule(
   id: RuleId = RuleId.next,
-  SKUs: List[String] = Nil,
-  cost: Money
+  cost: Money,
+  SKUs: List[String] = Nil
 )
 
 object Rule {
 
-  def apply(items: List[Item], cost: Money): Rule =
-    Rule(SKUs = items.map(_.SKU), cost = cost)
+  def apply(cost: Money, items: List[Item]): Rule =
+    Rule(cost = cost, SKUs = items.map(_.SKU))
 
-  def apply(item: Item, cost: Money): Rule =
-    Rule(SKUs = item.SKU :: Nil, cost = cost)
+  def apply(cost: Money, items: Item*): Rule =
+    Rule(cost = cost, SKUs = items.map(_.SKU).toList)
 
   implicit def reads: Reads[Rule] = (
     (__ \ 'id).read[Long].map(RuleId(_)) and
-      (__ \ 'SKUs).read[List[String]] and
-      (__ \ 'cost).read[Money]
-    ) ({ (id, SKUs, cost) => Rule.apply(id, SKUs, cost) })
+      (__ \ 'cost).read[Money] and
+      (__ \ 'SKUs).read[List[String]]
+    ) ({ (id, cost, SKUs) => Rule.apply(id, cost, SKUs) })
 
   implicit def writes: OWrites[Rule] = (
     (__ \ 'id).write[Long].contramap[RuleId](_.value) and
-      (__ \ 'SKUs).write[List[String]] and
-      (__ \ 'cost).write[Money]
+      (__ \ 'cost).write[Money] and
+      (__ \ 'SKUs).write[List[String]]
     ) (unlift(Rule.unapply))
 
 }

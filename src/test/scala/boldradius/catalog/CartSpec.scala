@@ -31,23 +31,23 @@ class CartSpec
 
     "become unpriced" when {
       "a new item is added" in {
-        PricedCart(items.head, USD(10.00)).addItem(items.last) should be(UnpricedCart(List(items.head, items.last)))
+        PricedCart(USD(10.00), items.head).addItem(items.last) should be(UnpricedCart(List(items.head, items.last)))
       }
 
       "new items are added" in {
-        PricedCart(items.head, USD(10.00)).addItems(items.tail) should be(UnpricedCart(items))
+        PricedCart(USD(10.00), items.head).addItems(items.tail) should be(UnpricedCart(items))
       }
     }
 
     "remain priced" when {
       "a cost is set" in {
-        PricedCart(items, USD(10.00)).withCost(JPY(1200)) should be(PricedCart(items, JPY(1200)))
+        PricedCart(USD(10.00), items).withCost(JPY(1200)) should be(PricedCart(JPY(1200), items))
       }
     }
 
     "become priced" when {
       "a cost is set" in {
-        UnpricedCart(items).withCost(JPY(1200)) should be(PricedCart(items, JPY(1200)))
+        UnpricedCart(items).withCost(JPY(1200)) should be(PricedCart(JPY(1200), items))
       }
     }
 

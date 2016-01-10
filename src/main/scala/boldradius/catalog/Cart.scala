@@ -43,7 +43,7 @@ object Cart {
   /**
    * @see [[UnpricedCart]]
    */
-  def apply(item: Item): UnpricedCart = UnpricedCart(items = item :: Nil)
+  def apply(items: Item*): UnpricedCart = UnpricedCart(items = items.toList)
 
   /**
    * @see [[PricedCart]]
@@ -53,7 +53,7 @@ object Cart {
   /**
    * @see [[PricedCart]]
    */
-  def apply(item: Item, cost: Money): PricedCart = PricedCart(items = item :: Nil, cost = cost)
+  def apply(cost: Money, items: Item*): PricedCart = PricedCart(cost = cost, items = items.toList)
 
   implicit val reads: Reads[Cart] =
     UnpricedCart.reads or
@@ -71,13 +71,13 @@ case class UnpricedCart(items: List[Item]) extends Cart {
 
   def withItems(items: List[Item]): UnpricedCart = copy(items = items)
 
-  override def withCost(cost: Money): PricedCart = PricedCart(items, cost)
+  override def withCost(cost: Money): PricedCart = PricedCart(cost, items)
 
 }
 
 object UnpricedCart {
 
-  def apply(item: Item): UnpricedCart = UnpricedCart(items = item :: Nil)
+  def apply(items: Item*): UnpricedCart = UnpricedCart(items = items.toList)
 
   val reads: Reads[Cart] = (
     (__ \ 'items).read[List[Item]] and
@@ -91,27 +91,27 @@ object UnpricedCart {
 
 }
 
-case class PricedCart(items: List[Item], cost: Money) extends Cart {
+case class PricedCart(cost: Money, items: List[Item]) extends Cart {
 
   def withItems(items: List[Item]): UnpricedCart = UnpricedCart(items = items)
 
-  override def withCost(cost: Money): PricedCart = PricedCart(items, cost)
+  override def withCost(cost: Money): PricedCart = PricedCart(cost, items)
 
 }
 
 object PricedCart {
 
-  def apply(item: Item, cost: Money): PricedCart = PricedCart(items = item :: Nil, cost = cost)
+  def apply(cost: Money, items: Item*): PricedCart = PricedCart(cost = cost, items = items.toList)
 
   val reads: Reads[Cart] = (
-    (__ \ 'items).read[List[Item]] and
-      (__ \ 'cost).read[Money] and
+    (__ \ 'cost).read[Money] and
+      (__ \ 'items).read[List[Item]] and
       (__ \ '_type).read[String](pattern("priced".r))
-    ) ({ (items, cost, _) => PricedCart(items, cost) })
+    ) ({ (cost, items, _) => PricedCart(cost, items) })
 
   val writes: OWrites[PricedCart] = (
-    (__ \ 'items).write[List[Item]] and
-      (__ \ 'cost).write[Money] and
+    (__ \ 'cost).write[Money] and
+      (__ \ 'items).write[List[Item]] and
       (__ \ '_type).write[String]
     ) (_ :+ "priced")
 
