@@ -2,6 +2,8 @@ package boldradius.catalog
 
 import com.typesafe.scalalogging.LazyLogging
 import org.scalatest.{Matchers, WordSpec}
+import play.api.libs.json.Json._
+import play.api.libs.json.{JsError, JsSuccess}
 import squants.market.{JPY, USD}
 
 class CartSpec
@@ -9,12 +11,13 @@ class CartSpec
           with Matchers
           with LazyLogging {
 
+  val items =
+    Item(SKU = "APPLE") ::
+      Item(SKU = "BREAD") ::
+      Item(SKU = "MARGARINE") ::
+      Nil
+
   "Shopping carts" must {
-    val items =
-      Item(SKU = "APPLE") ::
-        Item(SKU = "BREAD") ::
-        Item(SKU = "MARGARINE") ::
-        Nil
 
     "remain unpriced" when {
       "a new item is added" in {
@@ -46,6 +49,34 @@ class CartSpec
       "a cost is set" in {
         UnpricedCart(items).withCost(JPY(1200)) should be(PricedCart(items, JPY(1200)))
       }
+    }
+
+  }
+
+  "JSON serializers" should {
+
+    "read and write without loss" in {
+
+      val exemplars: List[Cart] =
+        UnpricedCart(items = Nil) ::
+          UnpricedCart(items = items) ::
+          PricedCart(items = Nil, cost = USD(10)) ::
+          PricedCart(items = items, cost = USD(10)) ::
+          Nil
+
+      exemplars foreach { expected =>
+        val actual = toJson(expected).validate[Cart]
+        actual should be(JsSuccess(expected))
+      }
+
+    }
+
+    "reject untyped documents" in {
+      obj("items" -> items).validate[Cart] should be(a[JsError])
+    }
+
+    "reject corrupted documents" in {
+      obj("_type" -> "bogus", "items" -> items).validate[Cart] should be(a[JsError])
     }
 
   }

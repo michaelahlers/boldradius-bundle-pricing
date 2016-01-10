@@ -1,9 +1,14 @@
 package boldradius.catalog
 
+import boldradius.squants.json.MoneyFormat
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json.{Reads, _}
+import shapeless.syntax.std.tuple._
 import squants.Money
 
 /**
- * Abstraction for a collection of [[Item items]], which may or may not yet have a [[Money cost]].
+ * Abstraction for a collection of [[Item items]], which may or may not yet have a [[squants.Money cost]].
  */
 sealed trait Cart {
 
@@ -22,7 +27,7 @@ sealed trait Cart {
   final def addItem(extraItem: Item): UnpricedCart = withItems(items = items :+ extraItem)
 
   /**
-   * Establishes a new [[Money cost]] for the cart, producing a [[PricedCart]].
+   * Establishes a new [[squants.Money cost]] for the cart, producing a [[PricedCart]].
    */
   def withCost(cost: Money): PricedCart
 
@@ -50,6 +55,16 @@ object Cart {
    */
   def apply(item: Item, cost: Money): PricedCart = PricedCart(items = item :: Nil, cost = cost)
 
+  implicit val reads: Reads[Cart] =
+    UnpricedCart.reads or
+      PricedCart.reads
+
+  implicit val writes: Writes[Cart] =
+    Writes {
+      case c: UnpricedCart => UnpricedCart.writes.writes(c)
+      case c: PricedCart => PricedCart.writes.writes(c)
+    }
+
 }
 
 case class UnpricedCart(items: List[Item]) extends Cart {
@@ -64,6 +79,16 @@ object UnpricedCart {
 
   def apply(item: Item): UnpricedCart = UnpricedCart(items = item :: Nil)
 
+  val reads: Reads[Cart] = (
+    (__ \ 'items).read[List[Item]] and
+      (__ \ '_type).read[String](pattern("unpriced".r))
+    ) ({ (items, _) => UnpricedCart(items) })
+
+  val writes: OWrites[UnpricedCart] = (
+    (__ \ 'items).write[List[Item]] and
+      (__ \ '_type).write[String]
+    ) (_ :+ "unpriced")
+
 }
 
 case class PricedCart(items: List[Item], cost: Money) extends Cart {
@@ -77,5 +102,17 @@ case class PricedCart(items: List[Item], cost: Money) extends Cart {
 object PricedCart {
 
   def apply(item: Item, cost: Money): PricedCart = PricedCart(items = item :: Nil, cost = cost)
+
+  val reads: Reads[Cart] = (
+    (__ \ 'items).read[List[Item]] and
+      (__ \ 'cost).read[Money] and
+      (__ \ '_type).read[String](pattern("priced".r))
+    ) ({ (items, cost, _) => PricedCart(items, cost) })
+
+  val writes: OWrites[PricedCart] = (
+    (__ \ 'items).write[List[Item]] and
+      (__ \ 'cost).write[Money] and
+      (__ \ '_type).write[String]
+    ) (_ :+ "priced")
 
 }
