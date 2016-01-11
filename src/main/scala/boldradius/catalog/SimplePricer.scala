@@ -1,5 +1,6 @@
 package boldradius.catalog
 
+import boldradius.catalog.Pricer.UnmatchedItemsException
 import boldradius.catalog.bundling.Rule
 import boldradius.scala.collection.{MaskedAll, MaskedSome, _}
 import com.typesafe.scalalogging.LazyLogging
@@ -25,21 +26,26 @@ class SimplePricer
 
   def materialize(rules: List[Rule], cart: List[Item]) = {
 
-    def childrenFor(root: Node): List[Node] = {
-      val children: List[Option[Node]] =
+    def childrenWithMatchesFor(root: Node): (List[Node], Set[Item]) = {
+
+      val childrenWithMatches: List[Option[(Node, List[Item])]] =
         rules map { rule =>
           val mask = rule.SKUs.counted
           root.concerns.masked(mask, _.SKU) match {
-            case MaskedAll(_) =>
-              Some(Leaf(rule, Nil, root))
-            case MaskedSome(in, _) =>
-              Some(Internal(rule, in, root))
+            case MaskedAll(out) =>
+              Some(Leaf(rule, Nil, root) -> out)
+            case MaskedSome(in, out) =>
+              Some(Internal(rule, in, root) -> out)
             case _ =>
               None
           }
         }
 
-      children.flatten
+      childrenWithMatches.flatten.foldLeft((List.empty[Node], Set.empty[Item])) {
+        case ((nodeAcc, matchesAcc), (node, matches)) =>
+          (nodeAcc :+ node, matchesAcc ++ matches)
+      }
+
     }
 
     @tailrec
@@ -55,13 +61,13 @@ class SimplePricer
       queue match {
 
         /** Arriving at the root indicates all matches have been explored. */
-        case Nil =>
+        case Nil if matches == cart.toSet =>
 
           results
 
-        //case Nil | (Root(_), Nil) :: Nil =>
-        //
-        //  throw new UnmatchedItemsException(rules, cart.toSet.diff(matches))
+        case Nil =>
+
+          throw new UnmatchedItemsException(rules, cart.toSet.diff(matches))
 
         /** No more rules left to evaluate at this position in the path. */
         case Leaf(rule, concerns, root) :: tail =>
@@ -75,11 +81,13 @@ class SimplePricer
 
         case root :: tail =>
 
-          build(childrenFor(root) ++ tail, matches, results)
+          val (children, localMatches) = childrenWithMatchesFor(root)
+          build(children ++ tail, matches ++ localMatches, results)
 
       }
 
-    build(childrenFor(Root(cart)), Set.empty, Set.empty)
+    val (children, localMatches) = childrenWithMatchesFor(Root(cart))
+    build(children, localMatches, Set.empty)
 
   }
 
