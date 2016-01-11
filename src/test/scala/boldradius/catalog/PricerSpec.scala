@@ -7,6 +7,9 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import squants.market.USD
 
+import scala.concurrent.Await
+import scala.language.postfixOps
+
 trait PricerSpec
   extends WordSpec
           with Matchers
@@ -139,11 +142,17 @@ trait PricerSpec
 
     "report failure" when {
 
+      import scala.concurrent.duration._
+
+      /* TODO: Figure out why ScalaFutures.futureValue won't produce the correct exception. */
+      def awaitPricer(rules: List[Rule], items: List[Item]) =
+        Await.result(pricer(rules, items), 1 second)
+
       "no rules are given for items" in {
         val items = List(Apple, Apple, Apple, Bread, Celery)
         val rules = List.empty[Rule]
 
-        val thrown = the[UnmatchedItemsException] thrownBy pricer(rules, items).futureValue
+        val thrown = the[UnmatchedItemsException] thrownBy awaitPricer(rules, items)
         thrown.rules should be(rules)
         thrown.items should be(items.toSet)
       }
@@ -152,7 +161,7 @@ trait PricerSpec
         val items = List(Apple, Apple, Apple, Bread, Celery)
         val rules = List(AA, B)
 
-        val thrown = the[UnmatchedItemsException] thrownBy pricer(rules, items).futureValue
+        val thrown = the[UnmatchedItemsException] thrownBy awaitPricer(rules, items)
         thrown.rules should be(rules)
         thrown.items should be(Set(Celery))
       }
@@ -161,7 +170,7 @@ trait PricerSpec
         val items = List(Bread, Celery)
         val rules = List(A, AB, C)
 
-        val thrown = the[UnmatchedItemsException] thrownBy pricer(rules, items).futureValue
+        val thrown = the[UnmatchedItemsException] thrownBy awaitPricer(rules, items)
         thrown.rules should be(rules)
         thrown.items should be(Set(Bread))
       }
