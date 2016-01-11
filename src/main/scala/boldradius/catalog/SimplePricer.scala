@@ -28,29 +28,37 @@ class SimplePricer
           results
 
         /** No more rules left to evaluate at this position in the path. */
+        case (root, Nil) :: tail if root.concerns.isEmpty =>
+          val path: List[Rule] = pathFor(stack)
+          val result: Map[Rule, Int] = path.foldLeft(Map.empty[Rule, Int]) { case (a, rule) =>
+            a.alter(rule)(_.map(_ + 1).orElse(Some(1)))
+          }
+
+          build(tail, results + result)
+
+        /* TODO: Error handling. */
         case (_, Nil) :: tail =>
           build(tail, results)
 
+        /** Evaluate the next in line rule for this node's concerns. */
         case (root, rh :: rt) :: tail =>
           val mask = rh.SKUs.counted
           root.concerns.masked(mask, _.SKU) match {
 
+            /** This node has no concerns, and is therefore a leaf. Don't descend further, and stop evaluating rules. */
             case MaskedEmpty =>
-              val path: List[Rule] = pathFor(stack)
-              val result: Map[Rule, Int] = path.foldLeft(Map.empty[Rule, Int]) { case (a, rule) =>
-                a.alter(rule)(_.map(_ + 1).orElse(Some(1)))
-              }
+              build((root, Nil) :: tail, results)
 
-              build((root, rt) :: tail, results + result)
-
-            /** This rule was entirely inapplicable. */
+            /** This rule was entirely inapplicable. Continue by offering remaining rules back to the queue. */
             case MaskedNone(_) =>
               build((root, rt) :: tail, results)
 
+            /** Every concern was masked. Descend further, adding a node for this rule, include it, but don't offer to evaluate any further rules. */
             case MaskedAll(_) =>
               val child = Node(Some(rh), Nil)
-              build((child, rules) ::(root, rt) :: tail, results)
+              build((child, Nil) ::(root, rt) :: tail, results)
 
+            /** A few concerns remain for this node. Descend further, adding a node, include it, and offer to evaluate all rules again for remaining concerns. */
             case MaskedSome(in, _) =>
               val child = Node(Some(rh), in)
               build((child, rules) ::(root, rt) :: tail, results)
