@@ -139,6 +139,15 @@ trait PricerSpec
 
     "report failure" when {
 
+      "no rules are given for items" in {
+        val items = List(Apple, Apple, Apple, Bread, Celery)
+        val rules = List.empty[Rule]
+
+        val thrown = the[UnmatchedItemsException] thrownBy pricer(rules, items).futureValue
+        thrown.rules should be(rules)
+        thrown.items should be(items.toSet)
+      }
+
       "any individual items can't match" in {
         val items = List(Apple, Apple, Apple, Bread, Celery)
         val rules = List(AA, B)
