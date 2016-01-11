@@ -4,10 +4,11 @@ import akka.actor._
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import boldradius.catalog.AkkaPricer.{Frontend, Result, Solve}
+import boldradius.catalog.Pricer.UnmatchedItemsException
 import boldradius.catalog.bundling.Rule
 import boldradius.scala.collection._
 import com.typesafe.scalalogging.LazyLogging
-import squants.market.Money
+import squants.Money
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -24,32 +25,32 @@ class AkkaPricer(context: ActorRefFactory)
   implicit def timeout = Timeout(5 seconds)
 
   override def apply(rules: List[Rule], items: List[Item]): Future[Money] =
-    for {
-      result <- (frontend ? Solve(rules, items)).mapTo[Result]
-      costs = result.costs
-    } yield costs.min
-
+    (frontend ? Solve(rules, items)).mapTo[Result] map {
+      case result if result.matches == items.toSet =>
+        result.costs.min
+      case result =>
+        throw new UnmatchedItemsException(rules, items.toSet.diff(result.matches))
+    }
 }
 
 object AkkaPricer
   extends LazyLogging {
 
-  case class Solution(path: List[Rule] /*, matches: Set[Item]*/) {
-
-    def result: Map[Rule, Int] = path.counted
+  case class Solution(path: List[Rule]) {
 
     def cost: Money =
-      result
+      path
+        .counted
         .map({ case (rule, count) => rule.cost * count })
         .reduce(_ + _)
 
   }
 
-  case class Solve(rules: List[Rule], items: List[Item], path: List[Rule] = Nil)
+  case class Solve(rules: List[Rule], items: List[Item], path: List[Rule] = Nil, matches: Set[Item] = Set.empty)
 
-  case class Result(solutions: List[Solution]) {
+  case class Result(solutions: List[Solution], matches: Set[Item]) {
 
-    def costs = solutions.map(_.cost)
+    def costs: List[Money] = solutions.map(_.cost)
 
   }
 
@@ -65,7 +66,7 @@ object AkkaPricer
     override def receive: Receive = {
 
       case solve: Solve =>
-        solver ? solve pipeTo sender
+        (solver ? solve).mapTo[Result] pipeTo sender
 
     }
 
@@ -80,7 +81,7 @@ object AkkaPricer
 
     override def receive: Receive = {
 
-      case Solve(rules, items, path) =>
+      case Solve(rules, items, path, matches) =>
 
         val results: List[Future[Result]] =
           rules map { rule =>
@@ -89,13 +90,13 @@ object AkkaPricer
             items.masked(mask, _.SKU) match {
 
               case MaskedAll(out) =>
-                Future(Result(Solution(path :+ rule) :: Nil))
+                Future(Result(Solution(path :+ rule) :: Nil, matches ++ out))
 
               case MaskedSome(in, out) =>
-                (frontend ? Solve(rules, in, path :+ rule)).mapTo[Result]
+                (frontend ? Solve(rules, in, path :+ rule, matches ++ out)).mapTo[Result]
 
               case _ =>
-                Future(Result(Nil))
+                Future(Result(Nil, matches))
 
             }
           }
@@ -104,7 +105,8 @@ object AkkaPricer
           for {
             r <- Future.sequence(results)
             solutions = r.flatMap(_.solutions)
-          } yield Result(solutions)
+            matches = r.flatMap(_.matches).toSet
+          } yield Result(solutions, matches)
 
         result pipeTo sender
 
