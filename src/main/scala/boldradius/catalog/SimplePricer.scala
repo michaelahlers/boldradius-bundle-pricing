@@ -1,5 +1,6 @@
 package boldradius.catalog
 
+import boldradius.catalog.Pricer.UnmatchedItemsException
 import boldradius.catalog.bundling.Rule
 import boldradius.scala.collection.{MaskedAll, MaskedEmpty, MaskedNone, MaskedSome, _}
 import com.typesafe.scalalogging.LazyLogging
@@ -32,26 +33,31 @@ class SimplePricer
       }
 
     @tailrec
-    def build(stack: List[(Node, List[Rule])], results: Set[Map[Rule, Int]]): Set[Map[Rule, Int]] =
+    def build(stack: List[(Node, List[Rule])], matches: Set[Item], results: Set[Map[Rule, Int]]): Set[Map[Rule, Int]] =
       stack match {
 
         /** Arriving at the root indicates all matches have been explored. */
-        case Nil | (Root(_), Nil) :: Nil =>
+        case Nil | (Root(_), Nil) :: Nil if matches == cart.toSet =>
 
           results
 
+        case Nil | (Root(_), Nil) :: Nil =>
+
+          throw new UnmatchedItemsException(rules, cart.toSet.diff(matches))
+
         /** No more rules left to evaluate at this position in the path. */
-        case (Leaf(rule, Nil), Nil) :: tail =>
+        case (Leaf(_, Nil), Nil) :: tail =>
 
           val path: List[Rule] = pathFor(stack)
           val result: Map[Rule, Int] = path.foldLeft(Map.empty[Rule, Int]) { case (a, rule) =>
             a.alter(rule)(_.map(_ + 1).orElse(Some(1)))
           }
 
-          build(tail, results + result)
+          build(tail, matches, results + result)
 
         case (_, Nil) :: tail =>
-          build(tail, results)
+
+          build(tail, matches, results)
 
         /** Evaluate the next in line rule for this node's concerns. */
         case (root, rh :: rt) :: tail =>
@@ -61,27 +67,27 @@ class SimplePricer
 
             /** This node has no concerns, and is therefore a leaf. Don't descend further, and stop evaluating rules. */
             case MaskedEmpty =>
-              build((root, Nil) :: tail, results)
+              build((root, Nil) :: tail, matches, results)
 
             /** This rule was entirely inapplicable. Continue by offering this node with remaining rules back to the queue. */
             case MaskedNone(_) =>
-              build((root, rt) :: tail, results)
+              build((root, rt) :: tail, matches, results)
 
             /** Every concern was masked. Descend further, adding a node for this rule, include it, but don't offer to evaluate any further rules. */
-            case MaskedAll(_) =>
+            case MaskedAll(out) =>
               val child = Leaf(rh)
-              build((child, Nil) ::(root, rt) :: tail, results)
+              build((child, Nil) ::(root, rt) :: tail, matches ++ out, results)
 
             /** A few concerns remain for this node. Descend further, adding a node, include it, and offer to evaluate all rules again for remaining concerns. */
-            case MaskedSome(in, _) =>
+            case MaskedSome(in, out) =>
               val child = Internal(rh, in)
-              build((child, rules) ::(root, rt) :: tail, results)
+              build((child, rules) ::(root, rt) :: tail, matches ++ out, results)
 
           }
 
       }
 
-    build(List(Root(cart) -> rules), Set.empty)
+    build(List(Root(cart) -> rules), Set.empty, Set.empty)
 
   }
 

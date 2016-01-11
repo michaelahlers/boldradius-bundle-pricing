@@ -1,5 +1,6 @@
 package boldradius.catalog
 
+import boldradius.catalog.Pricer.UnmatchedItemsException
 import boldradius.catalog.bundling.Rule
 import com.typesafe.scalalogging.LazyLogging
 import org.scalatest.concurrent.ScalaFutures
@@ -24,6 +25,7 @@ trait PricerSpec
 
   val A = Rule(USD(1.99), Apple)
   val B = Rule(USD(3.00), Bread)
+  val C = Rule(USD(2.00), Celery)
   val M = Rule(USD(2.50), Margarine)
 
   val AA = Rule(USD(2.15), Apple, Apple)
@@ -100,7 +102,7 @@ trait PricerSpec
     val items = List(Apple, Apple, Apple, Bread)
 
     "priced independently" must {
-      val rules = List(A, A, A, B)
+      val rules = List(A, B)
       val expected = USD(8.97)
       s"cost $expected" in {
         pricer(rules, items).futureValue should be(expected)
@@ -129,6 +131,32 @@ trait PricerSpec
       s"cost $expected" in {
         pricer(rules, items).futureValue should be(expected)
       }
+    }
+
+  }
+
+  "Pricing carts" must {
+
+    "report failure" when {
+
+      "any individual items can't match" in {
+        val items = List(Apple, Apple, Apple, Bread, Celery)
+        val rules = List(AA, B)
+
+        val thrown = the[UnmatchedItemsException] thrownBy pricer(rules, items).futureValue
+        thrown.rules should be(rules)
+        thrown.items should be(Set(Celery))
+      }
+
+      "an item is grouped but can't match because of missing but accounted for item" in {
+        val items = List(Bread, Celery)
+        val rules = List(A, AB, C)
+
+        val thrown = the[UnmatchedItemsException] thrownBy pricer(rules, items).futureValue
+        thrown.rules should be(rules)
+        thrown.items should be(Set(Bread))
+      }
+
     }
 
   }
