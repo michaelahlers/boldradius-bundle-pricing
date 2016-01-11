@@ -8,7 +8,6 @@ import squants.market.Money
 
 import scala.annotation.tailrec
 import scala.concurrent.Future
-import scalaz.syntax.std.map._
 
 class SimplePricer
   extends Pricer
@@ -76,9 +75,7 @@ class SimplePricer
         case Leaf(rule, concerns, root) :: tail =>
 
           val path: List[Rule] = pathFor(Leaf(rule, concerns, root), Nil)
-          val result: Map[Rule, Int] = path.foldLeft(Map.empty[Rule, Int]) { case (a, rule) =>
-            a.alter(rule)(_.map(_ + 1).orElse(Some(1)))
-          }
+          val result: Map[Rule, Int] = path.counted
 
           build(tail, matches, results + result)
 
