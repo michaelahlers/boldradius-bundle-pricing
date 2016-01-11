@@ -24,11 +24,11 @@ class SimplePricer
 
   case class Leaf(rule: Rule, concerns: List[Item] = Nil, root: Node) extends Node
 
-  def materialize(rules: List[Rule], cart: List[Item]) = {
+  def materialize(rules: List[Rule], items: List[Item]) = {
 
     def childrenWithMatchesFor(root: Node): (List[Node], Set[Item]) = {
 
-      val childrenWithMatches: List[Option[(Node, List[Item])]] =
+      val results: List[Option[(Node, List[Item])]] =
         rules map { rule =>
           val mask = rule.SKUs.counted
           root.concerns.masked(mask, _.SKU) match {
@@ -41,10 +41,13 @@ class SimplePricer
           }
         }
 
-      childrenWithMatches.flatten.foldLeft((List.empty[Node], Set.empty[Item])) {
-        case ((nodeAcc, matchesAcc), (node, matches)) =>
-          (nodeAcc :+ node, matchesAcc ++ matches)
-      }
+      val (children, matches) =
+        results.flatten.foldLeft((List.empty[Node], List.empty[Item])) {
+          case ((nodes, allMatches), (node, nodeMatches)) =>
+            (nodes :+ node, allMatches ++ nodeMatches)
+        }
+
+      children -> matches.toSet
 
     }
 
@@ -61,13 +64,13 @@ class SimplePricer
       queue match {
 
         /** Arriving at the root indicates all matches have been explored. */
-        case Nil if matches == cart.toSet =>
+        case Nil if matches == items.toSet =>
 
           results
 
         case Nil =>
 
-          throw new UnmatchedItemsException(rules, cart.toSet.diff(matches))
+          throw new UnmatchedItemsException(rules, items.toSet.diff(matches))
 
         /** No more rules left to evaluate at this position in the path. */
         case Leaf(rule, concerns, root) :: tail =>
@@ -86,7 +89,7 @@ class SimplePricer
 
       }
 
-    val (children, localMatches) = childrenWithMatchesFor(Root(cart))
+    val (children, localMatches) = childrenWithMatchesFor(Root(items))
     build(children, localMatches, Set.empty)
 
   }
