@@ -2,7 +2,7 @@ package boldradius.catalog
 
 import boldradius.catalog.Pricer.UnmatchedItemsException
 import boldradius.catalog.bundling.Rule
-import boldradius.scala.collection.{MaskedAll, MaskedSome, _}
+import boldradius.scala.collection._
 import com.typesafe.scalalogging.LazyLogging
 import squants.market.Money
 
