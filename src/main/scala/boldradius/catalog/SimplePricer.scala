@@ -51,8 +51,8 @@ class SimplePricer
       }
 
     @tailrec
-    def build(stack: List[Node], matches: Set[Item], results: Set[Map[Rule, Int]]): Set[Map[Rule, Int]] =
-      stack match {
+    def build(queue: List[Node], matches: Set[Item], results: Set[Map[Rule, Int]]): Set[Map[Rule, Int]] =
+      queue match {
 
         /** Arriving at the root indicates all matches have been explored. */
         case Nil =>
