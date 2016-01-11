@@ -5,6 +5,7 @@ import boldradius.scala.collection.{MaskedAll, MaskedEmpty, MaskedNone, MaskedSo
 import com.typesafe.scalalogging.LazyLogging
 import squants.market.Money
 
+import scala.annotation.tailrec
 import scala.concurrent.Future
 import scalaz.syntax.std.map._
 
@@ -18,6 +19,7 @@ class SimplePricer
     def pathFor(stack: List[(Node, List[Rule])]): List[Rule] =
       stack.collect({ case (Node(Some(r), _), _) => r })
 
+    @tailrec
     def build(stack: List[(Node, List[Rule])], results: Set[Map[Rule, Int]]): Set[Map[Rule, Int]] =
       stack match {
 
