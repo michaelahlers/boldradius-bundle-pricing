@@ -17,6 +17,7 @@ libraryDependencies ++=
   "ch.qos.logback" % "logback-classic" % "1.1.3" ::
     "com.chuusai" %% "shapeless" % "2.2.5" ::
     "com.squants" %% "squants" % "0.5.3" ::
+    "com.typesafe.akka" %% "akka-actor" % "2.4.1" ::
     "com.typesafe.play" %% "play-json" % "2.4.6" ::
     "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0" ::
     "io.dropwizard.metrics" % "metrics-core" % "3.1.2" ::
@@ -26,7 +27,8 @@ libraryDependencies ++=
 
 /** Test dependencies. */
 libraryDependencies ++=
-  "org.scalatest" %% "scalatest" % "2.2.4" % "test" ::
+  "com.typesafe.akka" %% "akka-testkit" % "2.4.1" % "test" ::
+    "org.scalatest" %% "scalatest" % "2.2.4" % "test" ::
     Nil
 
 scalacOptions in(Compile, doc) ++=

@@ -47,6 +47,10 @@ Test code coverage reports may be generated with:
 
 ## Resources
 
+### [Akka](http://akka.io)
+
+Included for a example implementation of the pricer.
+
 ### [Play JSON](http://playframework.com/documentation/2.4.x/ScalaJson)
 
 JSON representations of local models are convenient for both API consumers and developers. Typesafe's library—from the Play Framework—is a convenient and powerful tool for these purposes.
@@ -55,11 +59,11 @@ JSON representations of local models are convenient for both API consumers and d
 
 Used occasionally, mostly for testing purposes.
 
-### [Scalaz](https://github.com/scalaz/scalaz)
+### [Scalaz](http://github.com/scalaz/scalaz)
 
 Although its functional programming features are little-used by this project, it offers a few convenient enhancements to Scala's core library.
 
-### [Shapeless](https://github.com/milessabin/shapeless)
+### [Shapeless](http://github.com/milessabin/shapeless)
 
 As with Scalaz, Shapeless's more advanced features are little-used, save for conveniences it provides for working with tuples.
 
