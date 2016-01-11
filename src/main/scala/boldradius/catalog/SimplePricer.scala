@@ -1,8 +1,7 @@
 package boldradius.catalog
 
-import boldradius.catalog.Pricer.UnmatchedItemsException
 import boldradius.catalog.bundling.Rule
-import boldradius.scala.collection.{MaskedAll, MaskedEmpty, MaskedNone, MaskedSome, _}
+import boldradius.scala.collection.{MaskedAll, MaskedSome, _}
 import com.typesafe.scalalogging.LazyLogging
 import squants.market.Money
 
@@ -20,74 +19,67 @@ class SimplePricer
 
   case class Root(concerns: List[Item]) extends Node
 
-  case class Internal(rule: Rule, concerns: List[Item]) extends Node
+  case class Internal(rule: Rule, concerns: List[Item], root: Node) extends Node
 
-  case class Leaf(rule: Rule, concerns: List[Item] = Nil) extends Node
+  case class Leaf(rule: Rule, concerns: List[Item] = Nil, root: Node) extends Node
 
   def materialize(rules: List[Rule], cart: List[Item]) = {
 
-    def pathFor(stack: List[(Node, List[Rule])]): List[Rule] =
-      stack collect {
-        case (Internal(r, _), _) => r
-        case (Leaf(r, _), _) => r
+    def childrenFor(root: Node): List[Node] = {
+      val children: List[Option[Node]] =
+        rules map { rule =>
+          val mask = rule.SKUs.counted
+          root.concerns.masked(mask, _.SKU) match {
+            case MaskedAll(_) =>
+              Some(Leaf(rule, Nil, root))
+            case MaskedSome(in, _) =>
+              Some(Internal(rule, in, root))
+            case _ =>
+              None
+          }
+        }
+
+      children.flatten
+    }
+
+    @tailrec
+    def pathFor(node: Node, path: List[Rule]): List[Rule] =
+      node match {
+        case Root(_) => path
+        case Internal(rule, _, root) => pathFor(root, rule +: path)
+        case Leaf(rule, _, root) => pathFor(root, rule +: path)
       }
 
     @tailrec
-    def build(stack: List[(Node, List[Rule])], matches: Set[Item], results: Set[Map[Rule, Int]]): Set[Map[Rule, Int]] =
+    def build(stack: List[Node], matches: Set[Item], results: Set[Map[Rule, Int]]): Set[Map[Rule, Int]] =
       stack match {
 
         /** Arriving at the root indicates all matches have been explored. */
-        case Nil | (Root(_), Nil) :: Nil if matches == cart.toSet =>
+        case Nil =>
 
           results
 
-        case Nil | (Root(_), Nil) :: Nil =>
-
-          throw new UnmatchedItemsException(rules, cart.toSet.diff(matches))
+        //case Nil | (Root(_), Nil) :: Nil =>
+        //
+        //  throw new UnmatchedItemsException(rules, cart.toSet.diff(matches))
 
         /** No more rules left to evaluate at this position in the path. */
-        case (Leaf(_, Nil), Nil) :: tail =>
+        case Leaf(rule, concerns, root) :: tail =>
 
-          val path: List[Rule] = pathFor(stack)
+          val path: List[Rule] = pathFor(Leaf(rule, concerns, root), Nil)
           val result: Map[Rule, Int] = path.foldLeft(Map.empty[Rule, Int]) { case (a, rule) =>
             a.alter(rule)(_.map(_ + 1).orElse(Some(1)))
           }
 
           build(tail, matches, results + result)
 
-        case (_, Nil) :: tail =>
+        case root :: tail =>
 
-          build(tail, matches, results)
-
-        /** Evaluate the next in line rule for this node's concerns. */
-        case (root, rh :: rt) :: tail =>
-
-          val mask = rh.SKUs.counted
-          root.concerns.masked(mask, _.SKU) match {
-
-            /** This node has no concerns, and is therefore a leaf. Don't descend further, and stop evaluating rules. */
-            case MaskedEmpty =>
-              build((root, Nil) :: tail, matches, results)
-
-            /** This rule was entirely inapplicable. Continue by offering this node with remaining rules back to the queue. */
-            case MaskedNone(_) =>
-              build((root, rt) :: tail, matches, results)
-
-            /** Every concern was masked. Descend further, adding a node for this rule, include it, but don't offer to evaluate any further rules. */
-            case MaskedAll(out) =>
-              val child = Leaf(rh)
-              build((child, Nil) ::(root, rt) :: tail, matches ++ out, results)
-
-            /** A few concerns remain for this node. Descend further, adding a node, include it, and offer to evaluate all rules again for remaining concerns. */
-            case MaskedSome(in, out) =>
-              val child = Internal(rh, in)
-              build((child, rules) ::(root, rt) :: tail, matches ++ out, results)
-
-          }
+          build(childrenFor(root) ++ tail, matches, results)
 
       }
 
-    build(List(Root(cart) -> rules), Set.empty, Set.empty)
+    build(childrenFor(Root(cart)), Set.empty, Set.empty)
 
   }
 
