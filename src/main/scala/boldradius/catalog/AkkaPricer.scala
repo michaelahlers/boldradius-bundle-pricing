@@ -97,7 +97,7 @@ object AkkaPricer
 
     def reply() =
       if (expectedRules.size == rules.size) {
-        replyTo ! Result(paths.filter(_.nonEmpty).map(head ++: _).toList, matches.toSet)
+        replyTo ! Result(paths.map(head ++: _).toList, matches.toSet)
         head.foreach(replyTo !)
       }
 
@@ -160,7 +160,6 @@ object AkkaPricer
               context.parent ! Solve(rules, in, context.actorOf(Aggregator.props(rules, rule, aggregator)))
 
             case _ =>
-              aggregator ! Path(Nil)
               aggregator ! rule
 
           }
