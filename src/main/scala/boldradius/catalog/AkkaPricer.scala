@@ -2,6 +2,7 @@ package boldradius.catalog
 
 import akka.actor._
 import akka.pattern.ask
+import akka.routing.RoundRobinPool
 import akka.util.Timeout
 import boldradius.catalog.AkkaPricer.{Result, Solve, Solver}
 import boldradius.catalog.Pricer.UnmatchedItemsException
@@ -15,30 +16,23 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
+/**
+ * A [[Pricer]] built on Akka that allows the work load of “solving” a price to be distributed across arbitrary actors (including those running remotely).
+ *
+ * @param context Any kind of factory (_e.g._, [[akka.actor.ActorSystem]], [[akka.actor.ActorContext]]) wherein this implementation will make its [[akka.actor.Actor workers]].
+ */
 class AkkaPricer(context: ActorRefFactory)
   extends Pricer
           with LazyLogging {
 
   import context.dispatcher
 
-  val router =
-    context.actorOf(Props(new Actor {
-
-      val solvers = (0 until 5).map(_ => context.actorOf(Props(new Solver(self))))
-
-      var index = 0
-
-      override def receive: Receive = {
-        case message =>
-          val solver = solvers(index)
-          solver forward message
-          index = (index + 1) % solvers.size
-      }
-
-    }))
+  /** Play-pretend router. */
+  val router = context.actorOf(RoundRobinPool(5).props(Props[Solver]))
 
   implicit def timeout = Timeout(5 seconds)
 
+  /** @inheritdoc*/
   override def apply(rules: List[Rule], items: List[Item]): Future[Money] =
     (router ? Solve(rules, items)).mapTo[Result] map { result =>
       result.assertFinished(rules, items)
@@ -50,7 +44,7 @@ class AkkaPricer(context: ActorRefFactory)
 object AkkaPricer
   extends LazyLogging {
 
-  case class Path(rules: List[Rule]) {
+  private case class Path(rules: List[Rule]) {
 
     def cost: Money =
       rules
@@ -64,13 +58,13 @@ object AkkaPricer
 
   }
 
-  object Path {
+  private object Path {
     def apply(rule: Rule): Path = Path(rule :: Nil)
   }
 
-  case class Solve(rules: List[Rule], items: List[Item], aggregator: Option[ActorRef])
+  private case class Solve(rules: List[Rule], items: List[Item], aggregator: Option[ActorRef])
 
-  object Solve {
+  private object Solve {
 
     def apply(rules: List[Rule], items: List[Item], aggregator: ActorRef): Solve =
       Solve(rules, items, Some(aggregator))
@@ -80,7 +74,7 @@ object AkkaPricer
 
   }
 
-  case class Result(paths: List[Path], matches: Set[Item]) {
+  private case class Result(paths: List[Path], matches: Set[Item]) {
 
     def costs = paths.map(_.cost)
 
@@ -92,7 +86,7 @@ object AkkaPricer
 
   }
 
-  class Aggregator(expectedRules: List[Rule], head: Option[Rule], replyTo: ActorRef)
+  private class Aggregator(expectedRules: List[Rule], head: Option[Rule], replyTo: ActorRef)
     extends Actor {
 
     val matches: mutable.Buffer[Item] = mutable.Buffer.empty
@@ -128,7 +122,7 @@ object AkkaPricer
 
   }
 
-  object Aggregator {
+  private object Aggregator {
 
     def props(rules: List[Rule], rule: Rule, replyTo: ActorRef): Props =
       Props(new Aggregator(rules, Some(rule), replyTo))
@@ -138,13 +132,17 @@ object AkkaPricer
 
   }
 
-  class Solver(router: ActorRef)
+  /**
+   * While these don't contain mutable state, they _do_ serve as message endpoints (namely for [[Solve]]).
+   */
+  private class Solver
     extends Actor {
 
     override def receive: Receive = {
 
+      /** The [[sender]] wishes to receive the [[Result]]. */
       case Solve(rules, items, None) =>
-        router ! Solve(rules, items, Some(context.actorOf(Aggregator.props(rules, sender))))
+        context.parent ! Solve(rules, items, Some(context.actorOf(Aggregator.props(rules, sender))))
 
       case Solve(rules, items, Some(aggregator)) =>
         rules foreach { rule =>
@@ -159,7 +157,7 @@ object AkkaPricer
 
             case MaskedSome(in, out) =>
               out.foreach(aggregator !)
-              router ! Solve(rules, in, context.actorOf(Aggregator.props(rules, rule, aggregator)))
+              context.parent ! Solve(rules, in, context.actorOf(Aggregator.props(rules, rule, aggregator)))
 
             case _ =>
               aggregator ! Path(Nil)
