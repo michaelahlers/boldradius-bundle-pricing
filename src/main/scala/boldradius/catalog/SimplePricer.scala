@@ -24,7 +24,7 @@ class SimplePricer
 
   private case class Leaf(rule: Rule, concerns: List[Item] = Nil, root: Node) extends Node
 
-  private def materialize(rules: List[Rule], items: List[Item]) = {
+  private def solver(rules: List[Rule], items: List[Item]) = {
 
     def childrenWithMatchesFor(root: Node): (List[Node], Set[Item]) = {
 
@@ -96,7 +96,7 @@ class SimplePricer
   override def apply(rules: List[Rule], items: List[Item]): Future[Money] =
     Future.successful {
       val costs =
-        materialize(rules, items) map { solution =>
+        solver(rules, items) map { solution =>
           solution
             .map({ case (rule, count) => rule.cost * count })
             .reduce(_ + _)
