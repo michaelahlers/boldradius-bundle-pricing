@@ -12,7 +12,7 @@ import scalaz.syntax.std.map._
  * The following examples best illustrate usage and behavior:
  *
  * {{{
-import boldradius.scala.collection._
+import boldradius.syntax.scala.collection._
 
 val mask = Map('A' -> 3, 'B' -> 2, 'C' -> 1)
 
@@ -36,7 +36,7 @@ assert(List.empty[Char].masked(Map.empty) == MaskedEmpty)
  *
  * {{{
 import boldradius.catalog.Item
-import boldradius.scala.collection._
+import boldradius.syntax.scala.collection._
 
 val mask = Map("bread" -> 2, "margarine" -> 2)
 

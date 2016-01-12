@@ -1,4 +1,6 @@
-package boldradius.scala
+package boldradius.syntax.scala
+
+import boldradius.scala.collection.{TraversableCountByOps, TraversableMaskedOps}
 
 import scala.collection.generic.CanBuildFrom
 import scala.language.{higherKinds, implicitConversions}
