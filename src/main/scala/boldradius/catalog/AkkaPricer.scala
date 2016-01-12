@@ -49,6 +49,12 @@ object AkkaPricer
    */
   private case class Path(rules: List[Rule]) {
 
+    def cost: Money =
+      rules
+        .counted
+        .map({ case (rule, count) => rule.cost * count })
+        .reduce(_ + _)
+
     /** Prepends this [[Path]] with the given rules. */
     def ++:(precedingRules: Traversable[Rule]) = copy(rules = precedingRules ++: rules)
 
@@ -76,28 +82,18 @@ object AkkaPricer
   }
 
   /**
-   * Provides solutions to rule evaluation, taking into account, through aggregates enforced to be unique, scenarios where rules A, B, and C produce spurious permutations of matching items.
-   *
-   * @param solutions Unique aggregates of rule traversal.
+   * @param paths Accumulated paths at any given point in the solution hierarchy.
    * @param matches All items that've positively matched rules.
    */
-  private case class Result(solutions: Set[Map[Rule, Int]], matches: Set[Item]) {
+  private case class Result(paths: List[Path], matches: Set[Item]) {
 
-    def costs: Set[Money] =
-      solutions flatMap { solution =>
-        solution.map({ case (rule, count) => rule.cost * count })
-      }
+    def costs = paths.map(_.cost)
 
     def assertFinished(rules: List[Rule], items: List[Item]): Unit = {
       val difference = items.toSet.diff(matches)
       if (difference.nonEmpty) throw UnmatchedItemsException(rules, difference)
     }
 
-  }
-
-  private object Result {
-    def apply(paths: List[Path], matches: Set[Item]): Result =
-      Result(paths.map(_.rules.counted).toSet, matches)
   }
 
   /**
@@ -113,7 +109,7 @@ object AkkaPricer
     /** [[Item]] objects which have positively matched a rule. */
     val matches: mutable.Buffer[Item] = mutable.Buffer.empty
 
-    var solutions: Set[Map[Rule, Int]] = Set.empty
+    val paths: mutable.Buffer[Path] = mutable.Buffer.empty
 
     /** [[Rule]] objects which have been evaluated (used to determine when this aggregation is done). */
     val rules: mutable.Buffer[Rule] = mutable.Buffer.empty
@@ -121,7 +117,7 @@ object AkkaPricer
     /** Considers whether all expected rules have been evaluated. If they have, replies with a [[Result]] and, if appropriate, its own [[Rule]] ot signal evaluation. */
     def reply() =
       if (expectedRules.size == rules.size) {
-        replyTo ! Result(solutions.map(_ ++ head.map(_ -> 1)), matches.toSet)
+        replyTo ! Result(paths.map(head ++: _).toList, matches.toSet)
         head.foreach(replyTo !)
       }
 
@@ -136,14 +132,14 @@ object AkkaPricer
         matches += item
 
       case path: Path =>
-        solutions += path.rules.counted
+        paths += path
 
       case rule: Rule =>
         rules += rule
         reply()
 
       case result: Result =>
-        solutions ++= result.solutions
+        paths ++= result.paths
 
     }
 
