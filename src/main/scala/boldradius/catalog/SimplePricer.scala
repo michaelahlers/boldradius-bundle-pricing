@@ -91,6 +91,7 @@ class SimplePricer
 
   }
 
+  /** @inheritdoc*/
   override def apply(rules: List[Rule], items: List[Item]): Future[Money] =
     Future.successful {
       val costs =
