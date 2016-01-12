@@ -21,12 +21,26 @@ class AkkaPricer(context: ActorRefFactory)
 
   import context.dispatcher
 
-  val solver = context.actorOf(Props(new Solver))
+  val router =
+    context.actorOf(Props(new Actor {
+
+      val solvers = (0 until 5).map(_ => context.actorOf(Props(new Solver(self))))
+
+      var index = 0
+
+      override def receive: Receive = {
+        case message =>
+          val solver = solvers(index)
+          solver forward message
+          index = (index + 1) % solvers.size
+      }
+
+    }))
 
   implicit def timeout = Timeout(5 seconds)
 
   override def apply(rules: List[Rule], items: List[Item]): Future[Money] =
-    (solver ? Solve(rules, items)).mapTo[Result] map { result =>
+    (router ? Solve(rules, items)).mapTo[Result] map { result =>
       result.assertFinished(rules, items)
       result.costs.min
     }
@@ -124,13 +138,13 @@ object AkkaPricer
 
   }
 
-  class Solver
+  class Solver(router: ActorRef)
     extends Actor {
 
     override def receive: Receive = {
 
       case Solve(rules, items, None) =>
-        self ! Solve(rules, items, Some(context.actorOf(Aggregator.props(rules, sender))))
+        router ! Solve(rules, items, Some(context.actorOf(Aggregator.props(rules, sender))))
 
       case Solve(rules, items, Some(aggregator)) =>
         rules foreach { rule =>
@@ -145,7 +159,7 @@ object AkkaPricer
 
             case MaskedSome(in, out) =>
               out.foreach(aggregator !)
-              self ! Solve(rules, in, context.actorOf(Aggregator.props(rules, rule, aggregator)))
+              router ! Solve(rules, in, context.actorOf(Aggregator.props(rules, rule, aggregator)))
 
             case _ =>
               aggregator ! Path(Nil)
