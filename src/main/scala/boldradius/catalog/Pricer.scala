@@ -5,6 +5,9 @@ import squants.market.Money
 
 import scala.concurrent.Future
 
+/**
+ * A (typical) [[Pricer]] implementation exhaustively searches for the lowest price for a shopping cart, given rules which may provide discounts under certain circumstances.
+ */
 trait Pricer {
 
   final def apply(rules: List[Rule], cart: Cart): Future[Money] =
@@ -13,6 +16,9 @@ trait Pricer {
   final def apply(rules: List[Rule], items: Item*): Future[Money] =
     apply(rules = rules, items = items.toList)
 
+  /**
+   * Given the provided [[bundling.Rule rules]], calculate the lowest price for the [[Item items]].
+   */
   def apply(rules: List[Rule], items: List[Item]): Future[Money]
 
 }

@@ -14,8 +14,6 @@ val counts = chars.counted
 assert(chars.counted == Map('a' -> 2, 'b' -> 2, 'c' -> 2, 'A' -> 1, 'B' -> 1, 'C' -> 1))
 assert(chars.countBy(_.toLower) == Map('a' -> 3, 'b' -> 3, 'c' -> 3))
  * }}}
- *
- * @see [[boldradius.syntax.scala.collection.withCountBy]]
  */
 class TraversableCountByOps[A, C[A] <: Traversable[A]](c: C[A]) {
 
