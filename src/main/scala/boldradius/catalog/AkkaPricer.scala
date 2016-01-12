@@ -76,6 +76,9 @@ object AkkaPricer
   }
 
   /**
+   * Provides solutions to rule evaluation, taking into account, through aggregates enforced to be unique, scenarios where rules A, B, and C produce spurious permutations of matching items.
+   *
+   * @param solutions Unique aggregates of rule traversal.
    * @param matches All items that've positively matched rules.
    */
   private case class Result(solutions: Set[Map[Rule, Int]], matches: Set[Item]) {
