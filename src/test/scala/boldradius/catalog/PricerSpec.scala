@@ -24,18 +24,71 @@ trait PricerSpec
 
   object Celery extends Item(SKU = "CELERY")
 
+  object Daikon extends Item(SKU = "DAIKON")
+
+  object Eggplant extends Item(SKU = "EGGPLANT")
+
+  object Figs extends Item(SKU = "FIGS")
+
+  object Grapes extends Item(SKU = "Grapes")
+
   object Margarine extends Item(SKU = "MARGARINE")
+
+  object Inventory {
+
+    val all =
+      Apple ::
+        Bread ::
+        Celery ::
+        Daikon ::
+        Eggplant ::
+        Figs ::
+        Grapes ::
+        Margarine ::
+        Nil
+
+  }
 
   val A = Rule(USD(1.99), Apple)
   val B = Rule(USD(3.00), Bread)
   val C = Rule(USD(2.00), Celery)
+  val D = Rule(USD(1.00), Daikon)
+  val E = Rule(USD(2.50), Eggplant)
+  val F = Rule(USD(2.00), Figs)
+  val G = Rule(USD(5.00), Grapes)
   val M = Rule(USD(2.50), Margarine)
 
   val AA = Rule(USD(2.15), Apple, Apple)
   val AB = Rule(USD(1.75), Apple, Bread)
+  val AC = Rule(USD(1.75), Apple, Celery)
+
+  val FG = Rule(USD(1.75), Figs, Grapes)
 
   val AAA = Rule(USD(2.00), Apple, Apple, Apple)
   val BMM = Rule(B.cost + M.cost, Bread, Margarine, Margarine)
+
+  val ACDEFG = Rule(USD(1.75), Apple, Celery, Daikon, Eggplant, Figs, Grapes)
+
+  object Rules {
+
+    val all =
+      A ::
+        B ::
+        C ::
+        D ::
+        E ::
+        F ::
+        G ::
+        M ::
+        AA ::
+        AB ::
+        AC ::
+        AAA ::
+        BMM ::
+        ACDEFG ::
+        Nil
+
+  }
 
   "Apples sold with a group discount" when {
 
@@ -145,8 +198,8 @@ trait PricerSpec
       import scala.concurrent.duration._
 
       /* TODO: Figure out why ScalaFutures.futureValue won't produce the correct exception. */
-      def awaitPricer(rules: List[Rule], items: List[Item]) =
-        Await.result(pricer(rules, items), 1 second)
+      def awaitPricer(rules: List[Rule], items: List[Item], timeout: Duration = 1 second) =
+        Await.result(pricer(rules, items), timeout)
 
       "no rules are given for items" in {
         val items = List(Apple, Apple, Apple, Bread, Celery)
