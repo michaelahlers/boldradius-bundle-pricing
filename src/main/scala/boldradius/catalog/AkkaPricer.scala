@@ -44,6 +44,9 @@ class AkkaPricer(context: ActorRefFactory)
 object AkkaPricer
   extends LazyLogging {
 
+  /**
+   * Represents matching rules as items are consumed.
+   */
   private case class Path(rules: List[Rule]) {
 
     def cost: Money =
@@ -54,14 +57,17 @@ object AkkaPricer
 
     def ++:(foo: Traversable[Rule]) = copy(rules = foo ++: rules)
 
-    def nonEmpty: Boolean = rules.nonEmpty
-
   }
 
   private object Path {
     def apply(rule: Rule): Path = Path(rule :: Nil)
   }
 
+  /**
+   * @param rules An authoritative set of rules.
+   * @param items Items to be evaluated (generally decreases over time).
+   * @param aggregator Accumulates solutions.
+   */
   private case class Solve(rules: List[Rule], items: List[Item], aggregator: Option[ActorRef])
 
   private object Solve {
@@ -74,6 +80,10 @@ object AkkaPricer
 
   }
 
+  /**
+   * @param paths Accumulated paths at any given point in the solution hierarchy.
+   * @param matches All items that've positively matched rules.
+   */
   private case class Result(paths: List[Path], matches: Set[Item]) {
 
     def costs = paths.map(_.cost)
@@ -86,15 +96,25 @@ object AkkaPricer
 
   }
 
+  /**
+   * While [[Solver]] performs the computation, this actor accumulates results.
+   *
+   * @param expectedRules All rules which must be evaluated before work is considered complete.
+   * @param head An optional head [[Rule]], which, if present, indicates an internal element of a [[Path]], or, if absent, represents the terminator.
+   * @param replyTo An actor to receive a [[Result]] when finished, and, if an internal part of the path, the root [[Rule]].
+   */
   private class Aggregator(expectedRules: List[Rule], head: Option[Rule], replyTo: ActorRef)
     extends Actor {
 
+    /** [[Item]] objects which have positively matched a rule. */
     val matches: mutable.Buffer[Item] = mutable.Buffer.empty
 
     val paths: mutable.Buffer[Path] = mutable.Buffer.empty
 
+    /** [[Rule]] objects which have been evaluated (used to determine when this aggregation is done). */
     val rules: mutable.Buffer[Rule] = mutable.Buffer.empty
 
+    /** Considers whether all expected rules have been evaluated. If they have, replies with a [[Result]] and, if appropriate, its own [[Rule]] ot signal evaluation. */
     def reply() =
       if (expectedRules.size == rules.size) {
         replyTo ! Result(paths.map(head ++: _).toList, matches.toSet)
@@ -103,6 +123,9 @@ object AkkaPricer
 
     reply()
 
+    /**
+     * Generally accumulates its messages except in two cases: 1) a [[Rule]] is received, and [[reply]] is called, and 2) a [[Result]], originating from another [[Aggregator]], whose paths are added to those already known.
+     */
     override def receive: Receive = {
 
       case item: Item =>
@@ -142,27 +165,36 @@ object AkkaPricer
 
       /** The [[sender]] wishes to receive the [[Result]]. */
       case Solve(rules, items, None) =>
-        context.parent ! Solve(rules, items, Some(context.actorOf(Aggregator.props(rules, sender))))
 
+        /* Don't pass back up, and possibly incur network cost. */
+        self ! Solve(rules, items, Some(context.actorOf(Aggregator.props(rules, sender))))
+
+      /** Given [[Aggregator]] will be signaled with evaluations. */
       case Solve(rules, items, Some(aggregator)) =>
-        rules foreach { rule =>
-          val mask = rule.SKUs.counted
 
+        /* Breadth-first traversal. */
+        rules foreach { rule =>
+
+          val mask = rule.SKUs.counted
           items.masked(mask, _.SKU) match {
 
+            /** Every [[Item]] got matched. Pass them all to the [[Aggregator]], including a [[Path]] (which, in this case, is a leaf), and signal the [[Rule]] was evalated. */
             case MaskedAll(out) =>
               out.foreach(aggregator !)
               aggregator ! Path(rule)
               aggregator ! rule
 
+            /** A subset was masked, therefore there's further descending to do. Signal the incoming [[Aggregator]] which items have been matched, then create a new [[Aggregator]] to descend further. It will be responsible for signalling the [[Rule]] was evaluated. */
             case MaskedSome(in, out) =>
               out.foreach(aggregator !)
               context.parent ! Solve(rules, in, context.actorOf(Aggregator.props(rules, rule, aggregator)))
 
+            /** Either [[MaskedEmpty]] or [[MaskedNone]]. In this case, signal the aggregator that the [[Rule]] was evaluated, but there's no sense providing it a [[Path]]. */
             case _ =>
               aggregator ! rule
 
           }
+
         }
 
     }
