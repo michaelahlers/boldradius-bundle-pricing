@@ -6,7 +6,6 @@ import akka.routing.RoundRobinPool
 import akka.util.Timeout
 import boldradius.catalog.AkkaPricer.{Result, Solve, Solver}
 import boldradius.catalog.Pricer.UnmatchedItemsException
-import boldradius.catalog.bundling.Rule
 import boldradius.scala.collection._
 import boldradius.syntax.scala.collection._
 import com.typesafe.scalalogging.LazyLogging

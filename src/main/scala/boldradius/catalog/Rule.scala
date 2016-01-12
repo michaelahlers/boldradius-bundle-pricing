@@ -1,6 +1,5 @@
-package boldradius.catalog.bundling
+package boldradius.catalog
 
-import boldradius.catalog.Item
 import boldradius.squants.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._

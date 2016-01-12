@@ -14,4 +14,14 @@ package object catalog {
 
   }
 
+  case class RuleId(value: Long)
+
+  object RuleId {
+
+    private val id = new AtomicLong
+
+    def next: RuleId = RuleId(id.getAndIncrement)
+
+  }
+
 }

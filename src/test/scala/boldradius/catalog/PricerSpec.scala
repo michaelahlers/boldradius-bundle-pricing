@@ -1,7 +1,6 @@
 package boldradius.catalog
 
 import boldradius.catalog.Pricer.UnmatchedItemsException
-import boldradius.catalog.bundling.Rule
 import com.typesafe.scalalogging.LazyLogging
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}

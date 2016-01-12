@@ -1,6 +1,6 @@
 package boldradius.catalog
 
-import boldradius.catalog.bundling.Rule
+import boldradius.catalog
 import squants.market.Money
 
 import scala.concurrent.Future
@@ -47,7 +47,7 @@ trait Pricer {
     apply(rules = rules, items = items.toList)
 
   /**
-   * Given the provided [[bundling.Rule rules]], calculate the lowest price for the [[Item items]].
+   * Given the provided [[catalog.Rule rules]], calculate the lowest price for the [[Item items]].
    */
   def apply(rules: List[Rule], items: List[Item]): Future[Money]
 

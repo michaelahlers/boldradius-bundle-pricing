@@ -1,6 +1,5 @@
 package boldradius.catalog
 
-import boldradius.catalog.bundling.Rule
 import com.typesafe.scalalogging.LazyLogging
 import org.scalatest.{Matchers, WordSpec}
 import play.api.libs.json.JsSuccess
