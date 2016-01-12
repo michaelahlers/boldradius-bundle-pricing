@@ -13,17 +13,17 @@ class SimplePricer
   extends Pricer
           with LazyLogging {
 
-  sealed trait Node {
+  private sealed trait Node {
     def concerns: List[Item]
   }
 
-  case class Root(concerns: List[Item]) extends Node
+  private case class Root(concerns: List[Item]) extends Node
 
-  case class Internal(rule: Rule, concerns: List[Item], root: Node) extends Node
+  private case class Internal(rule: Rule, concerns: List[Item], root: Node) extends Node
 
-  case class Leaf(rule: Rule, concerns: List[Item] = Nil, root: Node) extends Node
+  private case class Leaf(rule: Rule, concerns: List[Item] = Nil, root: Node) extends Node
 
-  def materialize(rules: List[Rule], items: List[Item]) = {
+  private def materialize(rules: List[Rule], items: List[Item]) = {
 
     def childrenWithMatchesFor(root: Node): (List[Node], Set[Item]) = {
 
