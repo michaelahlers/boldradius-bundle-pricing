@@ -4,6 +4,7 @@ import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import boldradius.catalog.AkkaPricer.{Result, Solve, Solver}
+import boldradius.catalog.Pricer.UnmatchedItemsException
 import boldradius.catalog.bundling.Rule
 import boldradius.scala.collection._
 import com.typesafe.scalalogging.LazyLogging
@@ -26,15 +27,9 @@ class AkkaPricer(context: ActorRefFactory)
 
   override def apply(rules: List[Rule], items: List[Item]): Future[Money] =
     (solver ? Solve(rules, items)).mapTo[Result] map { result =>
+      result.assertFinished(rules, items)
       result.costs.min
     }
-
-  //(frontend ? Solve(rules, items)).mapTo[Result] map {
-  //  case result if result.matches == items.toSet =>
-  //    result.costs.min
-  //  case result =>
-  //    throw new UnmatchedItemsException(rules, items.toSet.diff(result.matches))
-  //}
 
 }
 
@@ -71,31 +66,46 @@ object AkkaPricer
 
   }
 
-  case class Result(paths: List[Path]) {
+  case class Result(paths: List[Path], matches: Set[Item]) {
 
     def costs = paths.map(_.cost)
+
+    def assertFinished(rules: List[Rule], items: List[Item]): Unit = {
+      val difference = items.toSet.diff(matches)
+      if (difference.nonEmpty) throw UnmatchedItemsException(rules, difference)
+    }
+
 
   }
 
   class Aggregator(expectedRules: List[Rule], head: Option[Rule], replyTo: ActorRef)
     extends Actor {
 
+    val matches: mutable.Buffer[Item] = mutable.Buffer.empty
+
     val paths: mutable.Buffer[Path] = mutable.Buffer.empty
 
     val rules: mutable.Buffer[Rule] = mutable.Buffer.empty
 
+    def reply() =
+      if (expectedRules.size == rules.size) {
+        replyTo ! Result(paths.filter(_.nonEmpty).map(head ++: _).toList, matches.toSet)
+        head.foreach(replyTo !)
+      }
+
+    reply()
+
     override def receive: Receive = {
+
+      case item: Item =>
+        matches += item
 
       case path: Path =>
         paths += path
 
       case rule: Rule =>
         rules += rule
-
-        if (expectedRules.size == rules.size) {
-          replyTo ! Result(paths.filter(_.nonEmpty).map(head ++: _).toList)
-          head.foreach(replyTo !)
-        }
+        reply()
 
       case result: Result =>
         paths ++= result.paths
@@ -128,11 +138,13 @@ object AkkaPricer
 
           items.masked(mask, _.SKU) match {
 
-            case MaskedAll(_) =>
+            case MaskedAll(out) =>
+              out.foreach(aggregator !)
               aggregator ! Path(rule)
               aggregator ! rule
 
-            case MaskedSome(in, _) =>
+            case MaskedSome(in, out) =>
+              out.foreach(aggregator !)
               self ! Solve(rules, in, context.actorOf(Aggregator.props(rules, rule, aggregator)))
 
             case _ =>
