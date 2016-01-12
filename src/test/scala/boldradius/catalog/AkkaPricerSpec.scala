@@ -18,4 +18,15 @@ class AkkaPricerSpec
 
   override def pricer: Pricer = new AkkaPricer(system)
 
+  /* TODO: Restore once spurious matches are reduced. */
+  //"Solve reasonably fast" when {
+  //
+  //  "using applying all rules against a large cart" in {
+  //    val items = Inventory.all
+  //    val rules = Rules.all
+  //    pricer(rules, items).futureValue(Timeout(Span(60, Seconds)), Interval(Span(1, Seconds))) should be(USD(7.25))
+  //  }
+  //
+  //}
+
 }
