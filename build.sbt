@@ -56,6 +56,8 @@ apiMappings ++= {
   Map(
     findManagedDependency("com.squants", "squants") -> url("http://oss.sonatype.org/service/local/repositories/releases/archive/com/squants/squants_2.11/0.5.3/squants_2.11-0.5.3-javadoc.jar/!"),
     findManagedDependency("com.typesafe.akka", "akka-actor") -> url("http://doc.akka.io/api/akka/2.4.1/"),
-    findManagedDependency("com.typesafe.play", "play-json") -> url("http://playframework.com/documentation/2.4.x/api/scala/")
+    findManagedDependency("com.typesafe.play", "play-json") -> url("http://playframework.com/documentation/2.4.x/api/scala/"),
+    /* FIXME: This doesn't actually work; links get created but they have the wrong path. */
+    findManagedDependency("org.choco-solver", "choco-solver") -> url("http://choco-solver.org/apidocs/")
   )
 }
