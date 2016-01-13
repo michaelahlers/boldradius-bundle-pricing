@@ -3,7 +3,7 @@ package boldradius.catalog
 import boldradius.catalog
 import squants.market.Money
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * A (typical) [[Pricer]] implementation searches for the lowest price for a shopping cart, given rules which may provide discounts under certain combinations of items.
@@ -40,8 +40,8 @@ import scala.concurrent.Future
  */
 trait Pricer {
 
-  final def apply(rules: List[Rule], cart: Cart): Future[Money] =
-    apply(rules = rules, items = cart.items)
+  final def apply(rules: List[Rule], cart: Cart)(implicit ec: ExecutionContext): Future[PricedCart] =
+    apply(rules = rules, items = cart.items).map(cart.withCost)
 
   final def apply(rules: List[Rule], items: Item*): Future[Money] =
     apply(rules = rules, items = items.toList)

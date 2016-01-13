@@ -100,6 +100,19 @@ trait PricerSpec
 
   }
 
+  "Return priced shopping carts" when {
+
+    "a cart is provided" in {
+      import scala.concurrent.ExecutionContext.Implicits.global
+
+      val rules = List(A, B)
+      val cart = Cart(Apple, Apple, Bread)
+      val expected = PricedCart(USD(6.98), Apple, Apple, Bread)
+      pricer(rules, cart).futureValue should be(expected)
+    }
+
+  }
+
   "Apples sold with a group discount" when {
 
     val rules = List(A, AA)
