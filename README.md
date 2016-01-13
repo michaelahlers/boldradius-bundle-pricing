@@ -47,7 +47,7 @@ Visit `target/scala-2.11/scoverage-report/index.html` (from the project's root) 
 
 ## Documentation
 
-API documentation is available with copious developer notes is included. Generate it with:
+API documentation is available with copious developer notes is included. From an SBT shell, generate it with:
 
 ```
 doc
