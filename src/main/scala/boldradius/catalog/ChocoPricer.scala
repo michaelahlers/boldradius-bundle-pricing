@@ -5,7 +5,7 @@ import squants.market.Money
 
 import scala.concurrent.Future
 
-class ConstraintPricer
+class ChocoPricer
   extends Pricer
           with LazyLogging {
 
@@ -13,7 +13,6 @@ class ConstraintPricer
 
 }
 
-object ConstraintPricer {
-
+object ChocoPricer {
 
 }

@@ -7,11 +7,11 @@ import com.typesafe.scalalogging.LazyLogging
 //import scala.concurrent.Await
 //import scala.concurrent.duration._
 
-class ConstraintPricerSpec
+class ChocoPricerSpec
   extends PricerSpec
           with LazyLogging {
 
-  override def pricer: Pricer = new ConstraintPricer
+  override def pricer: Pricer = new ChocoPricer
 
   //  "Solve before the heat death of the universe" when {
   //
