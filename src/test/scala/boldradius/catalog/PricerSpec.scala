@@ -29,7 +29,7 @@ trait PricerSpec
 
   object Figs extends Item(SKU = "FIGS")
 
-  object Grapes extends Item(SKU = "Grapes")
+  object Grapes extends Item(SKU = "GRAPES")
 
   object Margarine extends Item(SKU = "MARGARINE")
 
@@ -60,13 +60,18 @@ trait PricerSpec
   val AA = Rule(USD(2.15), Apple, Apple)
   val AB = Rule(USD(1.75), Apple, Bread)
   val AC = Rule(USD(1.75), Apple, Celery)
+  val AD = Rule(USD(1.75), Apple, Daikon)
+  val AE = Rule(USD(1.75), Apple, Eggplant)
+  val AF = Rule(USD(1.75), Apple, Figs)
+  val AG = Rule(USD(1.75), Apple, Grapes)
 
-  val FG = Rule(USD(1.75), Figs, Grapes)
+  val BB = Rule(USD(5.00), Bread, Bread)
 
   val AAA = Rule(USD(2.00), Apple, Apple, Apple)
-  val BMM = Rule(B.cost + M.cost, Bread, Margarine, Margarine)
+  val AAB = Rule(USD(2.00), Apple, Apple, Bread)
+  val ABB = Rule(USD(2.00), Apple, Bread, Bread)
 
-  val ACDEFG = Rule(USD(1.75), Apple, Celery, Daikon, Eggplant, Figs, Grapes)
+  val BMM = Rule(B.cost + M.cost, Bread, Margarine, Margarine)
 
   object Rules {
 
@@ -82,9 +87,15 @@ trait PricerSpec
         AA ::
         AB ::
         AC ::
+        AD ::
+        AE ::
+        AF ::
+        AG ::
+        BB ::
         AAA ::
+        AAB ::
+        ABB ::
         BMM ::
-        ACDEFG ::
         Nil
 
   }
