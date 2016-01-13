@@ -9,6 +9,11 @@ import squants.market.Money
 import scala.annotation.tailrec
 import scala.concurrent.Future
 
+/**
+ * Extremely slow. Traverses the search space, looking for paths that satisfy the whole cart. Exists for, uh, reference. Yeah, that's it.
+ *
+ * @see [[ChocoPricer]]
+ */
 class ExhaustivePricer
   extends Pricer
           with LazyLogging {
