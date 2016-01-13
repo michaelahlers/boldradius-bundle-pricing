@@ -43,13 +43,27 @@ Test code coverage reports may be generated with:
 ;coverage;clean;test;coverageReport
 ```
 
-(Visit `target/scala-2.11/scoverage-report/index.html` in your browser to see results.)
+Visit `target/scala-2.11/scoverage-report/index.html` (from the project's root) in your browser to see results.
+
+## Documentation
+
+API documentation is available with copious developer notes is included. Generate it with:
+
+```
+doc
+```
+
+Visit `target/scala-2.11/api/index.html` (from the project's root) in your browser to see results.
 
 ## Resources
 
 ### [Akka](http://akka.io)
 
 Included for a example implementation of the pricer.
+
+### [Choco](http://choco-solver.org)
+
+Provides a Knapsack problem constraint that's used by a pricer (class that calculates a price of items versus rules).
 
 ### [Play JSON](http://playframework.com/documentation/2.4.x/ScalaJson)
 
