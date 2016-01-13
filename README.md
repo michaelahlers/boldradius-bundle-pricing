@@ -57,10 +57,6 @@ Visit `target/scala-2.11/api/index.html` (from the project's root) in your brows
 
 ## Resources
 
-### [Akka](http://akka.io)
-
-Included for a example implementation of the pricer.
-
 ### [Choco](http://choco-solver.org)
 
 Provides a Knapsack problem constraint that's used by a pricer (class that calculates a price of items versus rules).
