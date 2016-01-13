@@ -21,6 +21,7 @@ libraryDependencies ++=
     "com.typesafe.play" %% "play-json" % "2.4.6" ::
     "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0" ::
     "io.dropwizard.metrics" % "metrics-core" % "3.1.2" ::
+    "org.choco-solver" % "choco-solver" % "3.3.3" ::
     // "org.julienrf" %% "play-json-variants" % "2.0" ::
     "org.scalaz" %% "scalaz-core" % "7.2.0" ::
     Nil
