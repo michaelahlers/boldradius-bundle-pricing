@@ -1,4 +1,4 @@
-# Bundle Pricing for [BoldRadius Solutions](http://boldradius.com)
+# Bundle Pricing for [BoldRadius Solutions](http://boldradius.com) [![CircleCI][CircleCI Badge]][CircleCI Branch]
 
 ## Abstract
 
@@ -80,3 +80,6 @@ As with Scalaz, Shapeless's more advanced features are little-used, save for con
 ### [Squants](http://squants.com)
 
 This project deals with costs, and the Squants framework—which deals with quantities and units of measure—provides an outstanding, full-featured API for money.
+
+[CircleCI Badge]: https://img.shields.io/circleci/project/github/michaelahlers/boldradius-bundle-pricing/master.svg
+[CircleCI Branch]: https://circleci.com/gh/michaelahlers/boldradius-bundle-pricing/tree/master
