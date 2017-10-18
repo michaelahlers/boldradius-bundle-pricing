@@ -34,7 +34,7 @@ test
 Specific tests with:
 
 ```
-test-only boldradius.catalog.ItemSpec
+testOnly boldradius.catalog.ItemSpec
 ```
 
 Test code coverage reports may be generated with:
